@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'inventory',
     'sales',
     'invoices',
+    'widget_tweaks',
 ]
 
 MIDDLEWARE = [

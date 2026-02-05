@@ -3,12 +3,14 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 
+ROLES_CHOICES = [
+    ('admin', 'Admin'),
+    ('sales', 'Sales Executive'),
+    ('inventory', 'Inventory Manager'),
+]
+
 class CustomUser(AbstractUser):
-    ROLES_CHOICES = (
-        ('admin', 'Admin'),
-        ('sales', 'Sales Executive'),
-        ('inventory', 'Inventory Manager'),
-    )
+    
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
     roles = models.CharField(max_length=20, choices=ROLES_CHOICES)
