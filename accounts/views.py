@@ -1,86 +1,75 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from .forms import AdminSignUpForm, SalesExecutiveSignUpForm, InventoryManagerSignUpForm
-from django.contrib.auth import login, logout, authenticate 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import SignupSerializer
 from .models import CustomUser
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 # Create your views here.
-
+@api_view(['POST'])
 def admin_signup(request):
-    if request.method == 'POST':
-        form = AdminSignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, "Admin account created successfully.")
-            return redirect('admin_dashboard')
-        else:
-            messages.error(request, "Please correct the errors below.")
-    else:
-        form = AdminSignUpForm()
+    data = request.data.copy()
+    data['roles'] = 'admin'
+
+    serializer = SignupSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message":"Admin created successfully"}, status=status.HTTP_201_CREATED)
     
-    return render(request, 'accounts/signup.html', {'form_data': form,'user_type': 'Admin'})
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+@api_view(['POST'])
 def sales_executive_signup(request):
-    if request.method == 'POSt':
-        form = SalesExecutiveSignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, "Sales Executive account created successfully.")
-            return redirect('sales_dashboard')
-        else:
-            messages.error(request, "Please correct the errors below.")
-    else:
-        form = SalesExecutiveSignUpForm()
+    data = request.data.copy()
+    data['roles'] = 'sales'
+
+    serializer = SignupSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message":"Sales Executive created successfully"}, status=status.HTTP_201_CREATED)
     
-    return render(request, 'accounts/signup.html', {'form_data': form,'user_type': 'Sales Executive'})
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@api_view(['POST'])
 def inventory_manager_signup(request):
-    if request.method == 'POST':
-        form = InventoryManagerSignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, "Inventory Manager account created successfully.")
-            return redirect('inventory_dashboard')
-        else:
-            messages.error(request, "Please correct the errors below.")
-    else:
-        form = InventoryManagerSignUpForm()
-    return render(request, 'accounts/signup.html', {'form_data': form,'user_type': 'Inventory Manager'})
+    data = request.data.copy()
+    data['roles'] = 'inventory'
+
+    serializer = SignupSerializer(data=data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message":"Inventory Manager created successfully"}, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+@api_view(['POST'])
 def custom_login(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+    email = request.data.get('email')
+    password = request.data.get('password')
 
-        try:
-            user_obj = CustomUser.objects.get(email=email)
-            user = authenticate(request, username=user_obj.email, password=password)
-        except CustomUser.DoesNotExist:
-            user = None
+    user = authenticate(username=email, password=password)
+    
+    if user is not None:
+        refresh = RefreshToken.for_user(user)
 
-        if user is not None:
-            login(request, user)
-            
-            if user.roles == 'admin':
-                messages.success(request, "Logged in successfully as Admin.")
-                return redirect('admin_dashboard')
-            elif user.roles == 'sales':
-                messages.success(request, "Logged in successfully as Sales Executive.")
-                return redirect('sales_dashboard')
-            elif user.roles == 'inventory':
-                messages.success(request, "Logged in successfully as Inventory Manager.")
-                return redirect('inventory_dashboard')
-            else:
-                messages.error(request, "Invalid user role.")
-                logout(request)
-
-    return render(request, 'accounts/login.html')
+        return Response({
+            "message": "Login successful",
+            "roles": user.roles,
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        })
+    
+    return Response({"error": "Invalid email or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
+@api_view(['GET'])
+def get_users(request):
+    users = CustomUser.objects.all().values('id', 'email', 'roles')
+    return Response(users)
