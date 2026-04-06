@@ -4,5 +4,5 @@ from .views import LeadViewSet, CustomerViewSet
 router = DefaultRouter()
 router.register(r'leads', LeadViewSet, basename='lead')
 router.register(r'customers', CustomerViewSet, basename='customer')
-#
+
 urlpatterns = router.urls
