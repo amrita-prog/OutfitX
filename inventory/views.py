@@ -11,11 +11,24 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Product.objects.all().order_by('-created_at')
+        queryset = Product.objects.all()
 
         name = self.request.query_params.get('name')
+        min_price = self.request.query_params.get('min_price')
+        max_price = self.request.query_params.get('max_price')
+        low_stock = self.request.query_params.get('low_stock')
+
         if name:
             queryset = queryset.filter(name__icontains=name)
+
+        if min_price:
+            queryset = queryset.filter(price__gte=min_price)
+
+        if max_price:
+            queryset = queryset.filter(price__lte=max_price)
+
+        if low_stock == 'true':
+            queryset = queryset.filter(stock_quantity__lt=10)
 
         return queryset
 

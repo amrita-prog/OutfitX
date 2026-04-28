@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'invoices',
     'widget_tweaks',
     'rest_framework',
+    'dashboard',
 ]
 
 MIDDLEWARE = [

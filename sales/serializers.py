@@ -14,7 +14,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id', 'customer', 'items', 'total_price', 'created_at']
+        fields = '__all__'
         read_only_fields = ['total_price']
 
     def create(self, validated_data):
@@ -33,7 +33,7 @@ class OrderSerializer(serializers.ModelSerializer):
             quantity = item['quantity']
 
             # STOCK CHECK
-            if product.stock < quantity:
+            if product.stock_quantity < quantity:
                 raise serializers.ValidationError(
                     f"Not enough stock for {product.name}"
                 )
@@ -51,7 +51,7 @@ class OrderSerializer(serializers.ModelSerializer):
             )
 
             # REDUCE STOCK
-            product.stock -= quantity
+            product.stock_quantity -= quantity
             product.save()
 
         order.total_price = total_price

@@ -9,7 +9,7 @@ ROLES_CHOICES = [
 
 class CustomUser(AbstractUser):
 
-    username = None  # ❗ remove username
+    username = None  # remove username
 
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
